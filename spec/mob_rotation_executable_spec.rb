@@ -1,6 +1,5 @@
 require "fileutils"
 require "timeout"
-require "mob_rotation"
 
 describe "mob_rotation command line tool" do
   let(:temp_rotation_db) { '/tmp/rotation_test.txt' }
