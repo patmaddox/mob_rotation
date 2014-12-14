@@ -14,28 +14,28 @@ describe MobRotation::Rotation do
 
   describe "#show_mobsters" do
     let(:file_name) { "test.txt" }
-    let(:output) { Output.new }
+    let(:our_output) { Output.new }
 
     before do
       File.open(file_name, "w") do |file|
         file << "Bob\n" << "Phoebe\n" << "Joe\n"
       end
 
-      $stdout = output
+      $stdout = our_output
 
       mob_rotator.show_mobsters
     end
 
     it "print out all the mobsters in the text file" do
-      expect(output.mobsters.join).to include("Mobster Joe")
+      expect(our_output.mobsters.join).to include("Mobster Joe")
     end
 
     it "prints out driver" do
-      expect(output.mobsters.join).to include("Driver Bob")
+      expect(our_output.mobsters.join).to include("Driver Bob")
     end
 
     it "prints out navigator" do
-      expect(output.mobsters.join).to include("Navigator Phoebe")
+      expect(our_output.mobsters.join).to include("Navigator Phoebe")
     end
   end
 

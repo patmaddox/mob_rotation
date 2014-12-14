@@ -32,13 +32,13 @@ describe "mob_rotation command line tool" do
 
   def run_rotate_with_specified_redirect(command = nil, redirect = nil)
     # TODO we have no idea why this is necessary, and don't like it
-    @output = nil
+    @our_output = nil
 
     `MOB_GIT_DIR='./tmp/test_project/.git' DB_FILE='#{temp_rotation_db}' #{RbConfig.ruby} #{File.join(Dir.pwd, 'bin/mob_rotation')}  #{command} #{redirect}`
   end
 
-  def output
-    @output ||= File.readlines('/tmp/results.txt').map(&:strip).reject(&:empty?)
+  def our_output
+    @our_output ||= File.readlines('/tmp/results.txt').map(&:strip).reject(&:empty?)
   end
 
   context "command: ruby mob_rotation" do
@@ -49,7 +49,7 @@ describe "mob_rotation command line tool" do
       FileUtils.cp(temp_rotation_db, './rotate.txt')
       `#{RbConfig.ruby} #{File.join(Dir.pwd, 'bin/mob_rotation')} > /tmp/results.txt`
       begin
-        expect(output).to include("Driver Bob","Navigator Phoebe")
+        expect(our_output).to include("Driver Bob","Navigator Phoebe")
       ensure
         FileUtils.mv('./rotate.txt.backup', './rotate.txt') if backup
       end
@@ -57,7 +57,7 @@ describe "mob_rotation command line tool" do
 
     it "prints out the rotation order" do
       run_rotate
-      expect(output).to include("Driver Bob","Navigator Phoebe")
+      expect(our_output).to include("Driver Bob","Navigator Phoebe")
     end
   end
 
@@ -74,7 +74,7 @@ describe "mob_rotation command line tool" do
                   'run_with_timer [seconds]'
                  ]
 
-      expect(output).to eq(expected)
+      expect(our_output).to eq(expected)
     end
   end
 
@@ -85,26 +85,26 @@ describe "mob_rotation command line tool" do
                   'Available commands are:'
                  ]
 
-      expect(output).to include(*expected)
+      expect(our_output).to include(*expected)
     end
   end
 
   context "command: ruby mob_rotation random" do
     it "Identifies list as randomized" do
       run_rotate 'random 1'
-      expect(output).to include("Randomized Output")
-      expect(output).to include("Driver Bob", "Navigator Phoebe")
+      expect(our_output).to include("Randomized Output")
+      expect(our_output).to include("Driver Bob", "Navigator Phoebe")
     end
 
     it "produces a different order with a different seed" do
       run_rotate 'random 0'
-      expect(output).to include("Driver Phoebe", "Navigator Bob")
+      expect(our_output).to include("Driver Phoebe", "Navigator Bob")
     end
 
     it "saves the rotation order" do
       run_rotate 'random 0'
       run_rotate
-      expect(output).to include("Driver Phoebe", "Navigator Bob")
+      expect(our_output).to include("Driver Phoebe", "Navigator Bob")
     end
 
     it "updates the git username" do
@@ -122,7 +122,7 @@ describe "mob_rotation command line tool" do
   context "command: ruby mob_rotation rotate" do
     it "changes the order of rotation" do
       run_rotate 'rotate'
-      expect(output).to include("Driver Phoebe","Navigator Bob")
+      expect(our_output).to include("Driver Phoebe","Navigator Bob")
     end
 
     describe "git stuff" do
@@ -134,7 +134,7 @@ describe "mob_rotation command line tool" do
         add_name_and_email_to_temp_db 'Joe Example', 'joe@example.com'
         run_rotate 'rotate'
 
-        expect(output).to include("Driver Bob Example <bob@example.com>",
+        expect(our_output).to include("Driver Bob Example <bob@example.com>",
                                   "Navigator Joe Example <joe@example.com>",
                                   "Mobster Phoebe Example <phoebe@example.com>")
       end
@@ -145,7 +145,7 @@ describe "mob_rotation command line tool" do
 
         run_rotate 'rotate'
 
-        expect(output).to include('git username: Phoebe Example', "Driver Phoebe Example")
+        expect(our_output).to include('git username: Phoebe Example', "Driver Phoebe Example")
       end
 
       it "outputs the new git email when running rotate" do
@@ -154,13 +154,13 @@ describe "mob_rotation command line tool" do
 
         run_rotate 'rotate'
 
-        expect(output).to include('git user email: phoebe@example.com')
+        expect(our_output).to include('git user email: phoebe@example.com')
 
         add_name_and_email_to_temp_db 'David Example', 'david-example@example.com'
 
         run_rotate 'rotate'
 
-        expect(output).to include('git user email: david-example@example.com')
+        expect(our_output).to include('git user email: david-example@example.com')
       end
 
       it "outputs the new git email when rotating a list of multiple users" do
@@ -170,7 +170,7 @@ describe "mob_rotation command line tool" do
 
         run_rotate 'rotate'
 
-        expect(output).to include('git user email: david@example.com')
+        expect(our_output).to include('git user email: david@example.com')
       end
 
       it "updates the git user.name config when running rotate" do
@@ -235,34 +235,34 @@ describe "mob_rotation command line tool" do
   context "command: ruby mob_rotation add one_name [two three]" do
     it "adds one mobster to the mob list" do
       run_rotate 'add Joe'
-      expect(output).to include("Driver Bob", "Navigator Phoebe", "Mobster Joe")
+      expect(our_output).to include("Driver Bob", "Navigator Phoebe", "Mobster Joe")
     end
 
     it "adds multiple mobsters at once" do
       run_rotate 'add Phil Steve'
-      expect(output).to include("Mobster Phil", "Mobster Steve")
+      expect(our_output).to include("Mobster Phil", "Mobster Steve")
     end
 
     it "new name cannot match existing name" do
       run_rotate 'add Ralph'
       run_rotate 'add Ralph'
 
-      expect(output).to include("user name 'Ralph' already exists")
-      expect(output.select {|l| l.include?('Ralph') }.size).to eq(2)
+      expect(our_output).to include("user name 'Ralph' already exists")
+      expect(our_output.select {|l| l.include?('Ralph') }.size).to eq(2)
     end
   end
 
   context "command: ruby mob_rotation remove one_name [two three]" do
     it "removes one mobster from the mob list" do
       run_rotate 'remove Bob'
-      expect(output).to include("Driver Phoebe")
+      expect(our_output).to include("Driver Phoebe")
     end
 
     it "removes multiple mobsters at once" do
       #TODO Doesn't test what it claims to test.
       run_rotate 'add Phil'
       run_rotate 'remove Bob Phoebe'
-      expect(output).to include("Driver Phil")
+      expect(our_output).to include("Driver Phil")
     end
   end
 
@@ -272,14 +272,14 @@ describe "mob_rotation command line tool" do
       run_rotate 'run_with_timer 3'
       tf = Time.now
       expect(tf - ts).to be_within(1).of(3.0 + MobRotation::Rotation.minimum_sleep_between_beeps * MobRotation::Rotation.number_of_beeps)
-      expect(output).to include("Time to rotate")
+      expect(our_output).to include("Time to rotate")
     end
 
     it "waits until time runs out before stating 'Time to Rotate'" do
       expect {
         Timeout::timeout(1) { run_rotate 'run_with_timer 5' }
       }.to raise_error(Timeout::Error)
-      expect(output).to eq([])
+      expect(our_output).to eq([])
     end
 
     it "notifies with a beep" do
